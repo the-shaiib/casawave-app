@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --black: #000000;
+  --white: #ffffff;
+  --pure-white: #ffffff;
+  --bg-light: #f2f2f2;
+  --border-light: #eeeeee;
+  --border-medium: #dddddd;
+  --text-main: #1a1a1a;
+  --text-dim: #666666;
+  --text-light: #999999;
+  --accent: #222222;
+  --error: #cc0000;
+  --success: #28a745;
+  --surface: #fafafa;
+  --container: min(1200px, 92vw);
+  --radius: 8px;
+  --radius-lg: 14px;
+  --space-1: clamp(8px, 1vw, 12px);
+  --space-2: clamp(12px, 1.4vw, 18px);
+  --space-3: clamp(18px, 2vw, 28px);
+  --space-4: clamp(26px, 3vw, 44px);
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.1);
+  --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--white);
+  color: var(--text-main);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  width: 100%;
+  min-height: calc(100vh - 80px);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  transition: var(--transition);
+  outline: none;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+::selection {
+  background-color: var(--black);
+  color: var(--white);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--white);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light);
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+}

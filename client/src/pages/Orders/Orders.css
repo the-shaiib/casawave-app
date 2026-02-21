@@ -1,0 +1,128 @@
+﻿.orders-page {
+  padding: clamp(42px, 8vw, 72px) 5%;
+  min-height: 70vh;
+}
+
+.orders-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.orders-header p {
+  font-size: 0.68rem;
+  letter-spacing: 4px;
+  color: var(--text-dim);
+}
+
+.orders-header h1 {
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  letter-spacing: 1px;
+}
+
+.orders-empty-text {
+  margin-top: 16px;
+  color: var(--text-dim);
+}
+
+.orders-empty {
+  margin-top: 22px;
+  border: 1px solid var(--border-light);
+  padding: 30px;
+  text-align: center;
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.orders-empty h2 {
+  font-size: 1.05rem;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.orders-empty a {
+  border: 1px solid var(--black);
+  background-color: var(--black);
+  color: var(--white);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  padding: 11px 14px;
+  display: inline-block;
+}
+
+.orders-empty a:hover {
+  background-color: var(--white);
+  color: var(--black);
+}
+
+.orders-list {
+  margin-top: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.order-item {
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.order-item img {
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--white);
+}
+
+.order-item-main {
+  display: grid;
+  gap: 3px;
+}
+
+.order-item-main p {
+  font-size: 0.9rem;
+}
+
+.order-item-main span {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.order-item button {
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+}
+
+.order-item button:hover:not(:disabled) {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.orders-error {
+  color: var(--error);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 700px) {
+  .order-item {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .order-item img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .order-item button {
+    grid-column: 1 / -1;
+    justify-self: flex-start;
+  }
+}

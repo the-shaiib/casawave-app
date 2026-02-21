@@ -1,0 +1,62 @@
+﻿.admin-login-page {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(30px, 6vw, 44px) 16px;
+}
+
+.admin-login-card {
+  width: min(420px, 100%);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: clamp(20px, 4vw, 30px);
+  display: grid;
+  gap: 14px;
+  background:
+    linear-gradient(to bottom, var(--surface), var(--white));
+}
+
+.admin-login-card p {
+  font-size: 0.68rem;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+}
+
+.admin-login-card h1 {
+  font-size: clamp(1.3rem, 3.2vw, 1.7rem);
+  margin-bottom: 4px;
+}
+
+.admin-login-card input {
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  outline: none;
+}
+
+.admin-login-card input:focus {
+  border-color: var(--black);
+}
+
+.admin-login-card button {
+  background-color: var(--black);
+  color: var(--white);
+  border: 1px solid var(--black);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.72rem;
+  letter-spacing: 1.8px;
+  font-weight: 600;
+}
+
+.admin-login-card button:hover {
+  background-color: var(--white);
+  color: var(--black);
+}
+
+.admin-login-card span {
+  color: var(--error);
+  font-size: 0.78rem;
+}
