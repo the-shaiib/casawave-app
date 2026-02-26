@@ -11,17 +11,27 @@ const orderRoutes = require('./routes/orderRoutes');
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
-const defaultAllowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const normalizeOrigin = (origin) => String(origin || '').trim().replace(/\/$/, '');
+
+const defaultAllowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://casawave-app.onrender.com',
+  process.env.RENDER_EXTERNAL_URL,
+]
+  .map(normalizeOrigin)
+  .filter(Boolean);
 const envAllowedOrigins = String(process.env.CORS_ORIGINS || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map(normalizeOrigin)
   .filter(Boolean);
 const allowedOrigins = new Set([...defaultAllowedOrigins, ...envAllowedOrigins]);
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
+      const requestOrigin = normalizeOrigin(origin);
+      if (!requestOrigin || allowedOrigins.has(requestOrigin)) {
         return callback(null, true);
       }
       return callback(new Error('Not allowed by CORS'));
