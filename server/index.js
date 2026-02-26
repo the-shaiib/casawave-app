@@ -27,12 +27,18 @@ app.use('/api', (req, res) => {
   return res.status(404).json({ message: 'API route not found.' });
 });
 
-const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
-if (fs.existsSync(clientDistPath)) {
+const clientDistPath = path.resolve(__dirname, '..', 'client', 'dist');
+const clientIndexPath = path.join(clientDistPath, 'index.html');
+
+if (fs.existsSync(clientIndexPath)) {
   app.use(express.static(clientDistPath));
-  app.get(/^(?!\/api).*/, (req, res) => {
-    return res.sendFile(path.join(clientDistPath, 'index.html'));
+
+  // Express 5 does not support app.get('*'); use named wildcard catch-all.
+  app.get('/{*splat}', (req, res) => {
+    return res.sendFile(clientIndexPath);
   });
+} else {
+  console.warn(`Client build not found at ${clientIndexPath}`);
 }
 
 const startServer = async () => {
