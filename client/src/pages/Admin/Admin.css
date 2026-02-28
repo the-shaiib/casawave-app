@@ -248,6 +248,104 @@
   padding: 0;
 }
 
+.admin-upload-card {
+  border: 1px dashed var(--border-medium);
+  border-radius: 12px;
+  min-height: 170px;
+  padding: 10px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.admin-upload-card:hover {
+  border-color: var(--black);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-upload-card-gallery {
+  min-height: 170px;
+}
+
+.admin-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.admin-upload-empty {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 6px;
+  color: var(--text-dim);
+}
+
+.admin-upload-empty i {
+  font-size: 1.4rem;
+  color: var(--text-main);
+}
+
+.admin-upload-empty span {
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  color: var(--text-main);
+}
+
+.admin-upload-empty small {
+  font-size: 0.66rem;
+  letter-spacing: 0.4px;
+}
+
+.admin-upload-preview {
+  width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+  border-radius: 9px;
+  border: 1px solid var(--border-light);
+}
+
+.admin-upload-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.admin-upload-gallery-thumb {
+  width: 100%;
+  height: 62px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+
+.admin-upload-meta {
+  display: grid;
+  gap: 2px;
+}
+
+.admin-upload-meta span {
+  font-size: 0.68rem;
+  letter-spacing: 0.9px;
+  color: var(--text-main);
+}
+
+.admin-upload-meta small {
+  font-size: 0.64rem;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .admin-product-form input:focus,
 .admin-product-form select:focus {
   border-color: var(--black);

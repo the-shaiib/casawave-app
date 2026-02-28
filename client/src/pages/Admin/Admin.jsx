@@ -28,6 +28,13 @@ const fileToDataUrl = (file) =>
   });
 
 const toWhatsAppNumber = (phone) => String(phone || '').replace(/\D/g, '');
+const revokeObjectUrls = (urls = []) => {
+  urls.forEach((url) => {
+    if (url) {
+      URL.revokeObjectURL(url);
+    }
+  });
+};
 
 function Admin() {
   const navigate = useNavigate();
@@ -48,6 +55,8 @@ function Admin() {
   const [isLogoutConfirming, setIsLogoutConfirming] = useState(false);
   const [pendingArchiveId, setPendingArchiveId] = useState(null);
   const [pendingRemoveId, setPendingRemoveId] = useState(null);
+  const [mainImagePreview, setMainImagePreview] = useState('');
+  const [galleryPreviews, setGalleryPreviews] = useState([]);
   const adminToken =
     typeof window !== 'undefined' ? window.localStorage.getItem(ADMIN_TOKEN_KEY) : '';
 
@@ -56,6 +65,22 @@ function Admin() {
       navigate('/admin-login', { replace: true });
     }
   }, [navigate, adminToken]);
+
+  useEffect(
+    () => () => {
+      if (mainImagePreview) {
+        URL.revokeObjectURL(mainImagePreview);
+      }
+    },
+    [mainImagePreview]
+  );
+
+  useEffect(
+    () => () => {
+      revokeObjectUrls(galleryPreviews);
+    },
+    [galleryPreviews]
+  );
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -77,11 +102,21 @@ function Admin() {
   const handleMainImageChange = (event) => {
     const file = event.target.files?.[0] || null;
     setProductForm((prev) => ({ ...prev, mainImage: file }));
+    setMainImagePreview((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return file ? URL.createObjectURL(file) : '';
+    });
   };
 
   const handleGalleryImagesChange = (event) => {
     const files = Array.from(event.target.files || []).slice(0, 4);
     setProductForm((prev) => ({ ...prev, galleryImages: files }));
+    setGalleryPreviews((prev) => {
+      revokeObjectUrls(prev);
+      return files.map((file) => URL.createObjectURL(file));
+    });
   };
 
   const handleAddProduct = async (event) => {
@@ -111,6 +146,16 @@ function Admin() {
       });
 
       setProductForm(initialProductForm);
+      setMainImagePreview((prev) => {
+        if (prev) {
+          URL.revokeObjectURL(prev);
+        }
+        return '';
+      });
+      setGalleryPreviews((prev) => {
+        revokeObjectUrls(prev);
+        return [];
+      });
       setFormKey((prev) => prev + 1);
     } catch (error) {
       const message = parseApiError(error, 'Failed to add product.');
@@ -329,24 +374,67 @@ function Admin() {
                 required
               />
 
-              <label className="admin-file-field">
-                Main image
+              <label className="admin-upload-card">
                 <input
+                  className="admin-file-input"
                   type="file"
                   accept="image/*"
                   onChange={handleMainImageChange}
                   required
                 />
+                {mainImagePreview ? (
+                  <>
+                    <img
+                      className="admin-upload-preview"
+                      src={mainImagePreview}
+                      alt="Main preview"
+                    />
+                    <div className="admin-upload-meta">
+                      <span>Main image ready</span>
+                      <small>{productForm.mainImage?.name || '1 file selected'}</small>
+                    </div>
+                  </>
+                ) : (
+                  <div className="admin-upload-empty">
+                    <i className="fa-solid fa-cloud-arrow-up" />
+                    <span>Upload main image</span>
+                    <small>Click to choose file</small>
+                  </div>
+                )}
               </label>
 
-              <label className="admin-file-field">
-                Additional images (up to 4)
+              <label className="admin-upload-card admin-upload-card-gallery">
                 <input
+                  className="admin-file-input"
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleGalleryImagesChange}
                 />
+                {galleryPreviews.length > 0 ? (
+                  <>
+                    <div className="admin-upload-gallery-grid">
+                      {galleryPreviews.map((previewUrl, index) => (
+                        <img
+                          key={`gallery-preview-${index}`}
+                          className="admin-upload-gallery-thumb"
+                          src={previewUrl}
+                          alt={`Gallery preview ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                    <div className="admin-upload-meta">
+                      <span>Additional images</span>
+                      <small>{galleryPreviews.length} file(s) selected</small>
+                    </div>
+                  </>
+                ) : (
+                  <div className="admin-upload-empty">
+                    <i className="fa-regular fa-images" />
+                    <span>Upload additional images</span>
+                    <small>Up to 4 files</small>
+                  </div>
+                )}
               </label>
 
               <div className="admin-size-field">

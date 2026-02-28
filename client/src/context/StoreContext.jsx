@@ -299,20 +299,28 @@ export function StoreProvider({ children }) {
     setCheckoutState({ open: false, product: null, size: 'M', quantity: 1 });
   };
 
-  const submitOrder = async (checkoutForm) => {
-    const quantity = normalizeQuantity(checkoutForm.quantity ?? checkoutState.quantity);
-    const unitPrice = checkoutState.product?.price || 0;
-    const productImages = resolveProductImages(checkoutState.product);
+  const submitOrder = async (checkoutForm, orderOptions = null) => {
+    const sourceProduct = orderOptions?.product || checkoutState.product;
+    const sourceSize = String(orderOptions?.size || checkoutState.size || '').trim();
+    const quantity = normalizeQuantity(
+      orderOptions?.quantity ?? checkoutForm.quantity ?? checkoutState.quantity
+    );
+    const unitPrice = sourceProduct?.price || 0;
+    const productImages = resolveProductImages(sourceProduct);
+
+    if (!sourceProduct || !sourceSize) {
+      throw new Error('Please select product size before placing the order.');
+    }
 
     const payload = {
       customerName: checkoutForm.fullName,
       email: checkoutForm.email,
       phone: checkoutForm.phone,
       location: checkoutForm.location,
-      productName: checkoutState.product?.name || 'Unknown product',
-      productId: checkoutState.product?.id || null,
+      productName: sourceProduct?.name || 'Unknown product',
+      productId: sourceProduct?.id || null,
       productImage: productImages[0],
-      size: checkoutState.size,
+      size: sourceSize,
       quantity,
       unitPrice,
     };
@@ -327,7 +335,9 @@ export function StoreProvider({ children }) {
         phone: String(checkoutForm.phone || '').replace(/\D/g, ''),
       });
       setUserOrders((prev) => [order, ...prev]);
-      closeCheckout();
+      if (!orderOptions?.product) {
+        closeCheckout();
+      }
 
       return order;
     } catch (error) {
