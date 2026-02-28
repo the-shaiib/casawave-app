@@ -1,6 +1,19 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const ALLOWED_CATEGORIES = ['Hoodies', 'T-shirts', 'Pants', 'Ensemble'];
+const DEFAULT_SIZES = ['S', 'M', 'L', 'XL'];
+
+const normalizeSizes = (sizes) => {
+  if (!Array.isArray(sizes)) return [...DEFAULT_SIZES];
+
+  const normalized = sizes
+    .map((size) => String(size || '').trim().toUpperCase())
+    .filter(Boolean);
+  const unique = [...new Set(normalized)];
+
+  if (unique.length === 0) return [...DEFAULT_SIZES];
+  return unique;
+};
 
 const productSchema = new mongoose.Schema(
   {
@@ -32,6 +45,11 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+    },
+    availableSizes: {
+      type: [String],
+      default: () => [...DEFAULT_SIZES],
+      set: normalizeSizes,
     },
   },
   {

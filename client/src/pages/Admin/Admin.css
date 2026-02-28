@@ -61,6 +61,14 @@
   letter-spacing: 2px;
 }
 
+.admin-data-source {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
 .admin-card {
   border: 1px solid var(--border-light);
   border-radius: 14px;

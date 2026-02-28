@@ -7,6 +7,9 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "seed:admin": "node scripts/seedAdmin.js",
+    "db:products:list": "node scripts/listProducts.js",
+    "db:products:repair": "node scripts/repairProducts.js",
+    "db:products:purge": "node scripts/purgeProducts.js",
     "test": "echo \"No tests configured yet\""
   },
   "keywords": [],

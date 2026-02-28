@@ -13,7 +13,7 @@ function Orders() {
           <h1>My Orders</h1>
         </header>
 
-        {isUserOrdersLoading ? (
+        {isUserOrdersLoading && userOrders.length === 0 ? (
           <p className="orders-empty-text">Loading orders...</p>
         ) : userOrders.length === 0 ? (
           <div className="orders-empty">

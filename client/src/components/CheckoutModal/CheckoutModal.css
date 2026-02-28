@@ -1,22 +1,19 @@
-﻿.checkout-layer {
+.checkout-layer {
   position: fixed;
-  top: 80px;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   z-index: 12000;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   background-color: rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(4px);
-  overflow: hidden;
-  padding: 12px;
+  overflow-y: auto;
+  padding: 92px 12px 12px;
 }
 
 .checkout-panel {
   width: min(460px, 100%);
-  height: calc(100dvh - 104px);
+  max-height: calc(100dvh - 104px);
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -30,9 +27,9 @@
 }
 
 .checkout-close {
-  position: sticky;
-  top: 0;
-  margin-left: auto;
+  position: absolute;
+  top: 12px;
+  right: 12px;
   display: grid;
   place-items: center;
   width: 34px;
@@ -53,7 +50,7 @@
 .checkout-panel h2 {
   font-size: 1.05rem;
   letter-spacing: 0.6px;
-  margin-bottom: 10px;
+  margin: 0 40px 10px 0;
 }
 
 .checkout-product {
@@ -161,6 +158,9 @@
   margin-top: 4px;
   width: 100%;
   min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--black);
   border-radius: 8px;
   background-color: var(--black);
@@ -188,15 +188,15 @@
 
 @media (max-width: 640px) {
   .checkout-layer {
-    top: 80px;
-    padding: 0;
-    align-items: flex-start;
+    padding: 80px 0 0;
+    align-items: stretch;
   }
 
   .checkout-panel {
     width: 100%;
     max-width: 100%;
-    height: calc(100dvh - 80px);
+    max-height: none;
+    min-height: calc(100dvh - 80px);
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -206,6 +206,11 @@
   .checkout-form input,
   .checkout-form textarea {
     font-size: 16px;
+  }
+
+  .checkout-form button {
+    font-size: 0.74rem;
+    letter-spacing: 1.2px;
   }
 }
 

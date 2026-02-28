@@ -15,11 +15,24 @@ const USER_ORDERS_KEY = 'casawave_user_orders';
 const USER_PROFILE_KEY = 'casawave_customer_profile';
 const MAX_IMAGE_PAYLOAD_BYTES = 50 * 1024 * 1024;
 const ORDER_SYNC_INTERVAL_MS = 4000;
+const DEFAULT_PRODUCT_SIZES = ['S', 'M', 'L', 'XL'];
 
 const normalizeQuantity = (value) => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 1) return 1;
   return Math.floor(parsed);
+};
+
+const normalizeSizeList = (sizes, fallback = DEFAULT_PRODUCT_SIZES) => {
+  if (!Array.isArray(sizes)) return [...fallback];
+
+  const normalized = sizes
+    .map((size) => String(size || '').trim().toUpperCase())
+    .filter(Boolean);
+  const unique = [...new Set(normalized)];
+
+  if (unique.length === 0) return [...fallback];
+  return unique;
 };
 
 const resolveProductImages = (product) => {
@@ -46,7 +59,7 @@ const mapApiProductToUi = (product) => {
     category: product?.category || '',
     img: image,
     images: [image, ...extraImages],
-    availableSizes: ['S', 'M', 'L', 'XL'],
+    availableSizes: normalizeSizeList(product?.availableSizes),
   };
 };
 
@@ -164,12 +177,13 @@ export function StoreProvider({ children }) {
     }
 
     let active = true;
+    let hasFinishedInitialFetch = false;
 
     const fetchOrders = async () => {
       const token = getStoredAdminToken();
       if (!token) return;
 
-      if (active) {
+      if (active && !hasFinishedInitialFetch) {
         setIsOrdersLoading(true);
       }
 
@@ -191,8 +205,9 @@ export function StoreProvider({ children }) {
         console.error('Failed to fetch orders:', error.message);
         notifyUser(parseApiError(error, DEFAULT_SERVER_ERROR_MESSAGE));
       } finally {
-        if (active) {
+        if (active && !hasFinishedInitialFetch) {
           setIsOrdersLoading(false);
+          hasFinishedInitialFetch = true;
         }
       }
     };
@@ -229,9 +244,10 @@ export function StoreProvider({ children }) {
     }
 
     let active = true;
+    let hasFinishedInitialFetch = false;
 
     const fetchCustomerOrders = async () => {
-      if (active) {
+      if (active && !hasFinishedInitialFetch) {
         setIsUserOrdersLoading(true);
       }
 
@@ -254,8 +270,9 @@ export function StoreProvider({ children }) {
         console.error('Failed to fetch customer orders:', error.message);
         notifyUser(parseApiError(error, DEFAULT_SERVER_ERROR_MESSAGE));
       } finally {
-        if (active) {
+        if (active && !hasFinishedInitialFetch) {
           setIsUserOrdersLoading(false);
+          hasFinishedInitialFetch = true;
         }
       }
     };
@@ -398,6 +415,7 @@ export function StoreProvider({ children }) {
           image,
           additionalImages,
           description: newProduct.description,
+          availableSizes: normalizeSizeList(newProduct.availableSizes, []),
         },
         {
           headers: {
@@ -406,7 +424,13 @@ export function StoreProvider({ children }) {
         }
       );
 
-      const mapped = mapApiProductToUi(response.data);
+      const responseProduct = response?.data || {};
+      const mapped = mapApiProductToUi({
+        ...responseProduct,
+        availableSizes: Array.isArray(responseProduct.availableSizes)
+          ? responseProduct.availableSizes
+          : normalizeSizeList(newProduct.availableSizes),
+      });
       setProducts((prev) => [mapped, ...prev]);
 
       return mapped;

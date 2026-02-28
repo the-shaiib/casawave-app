@@ -1,4 +1,6 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://casawave-app.onrender.com';
+const configuredApiBaseUrl = String(import.meta.env.VITE_API_BASE_URL || '').trim();
+export const API_BASE_URL = configuredApiBaseUrl || '';
+export const API_TARGET_LABEL = configuredApiBaseUrl || 'same-origin (/api)';
 
 export const DEFAULT_SERVER_ERROR_MESSAGE = 'Server error, please try again later.';
 

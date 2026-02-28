@@ -1,6 +1,20 @@
-﻿const Product = require('../models/Product');
+const Product = require('../models/Product');
+const mongoose = require('mongoose');
 
 const ALLOWED_CATEGORIES = ['Hoodies', 'T-shirts', 'Pants', 'Ensemble'];
+const DEFAULT_SIZES = ['S', 'M', 'L', 'XL'];
+
+const normalizeSizes = (sizes) => {
+  if (!Array.isArray(sizes)) return [...DEFAULT_SIZES];
+
+  const normalized = sizes
+    .map((size) => String(size || '').trim().toUpperCase())
+    .filter(Boolean);
+  const unique = [...new Set(normalized)];
+
+  if (unique.length === 0) return [...DEFAULT_SIZES];
+  return unique;
+};
 
 const getProducts = async (req, res) => {
   try {
@@ -13,7 +27,15 @@ const getProducts = async (req, res) => {
 
 const addProduct = async (req, res) => {
   try {
-    const { name, price, category, image, additionalImages, description } = req.body;
+    const {
+      name,
+      price,
+      category,
+      image,
+      additionalImages,
+      description,
+      availableSizes,
+    } = req.body;
 
     if (!name || price === undefined || !category || !image || !description) {
       return res.status(400).json({
@@ -31,6 +53,7 @@ const addProduct = async (req, res) => {
     const normalizedAdditionalImages = Array.isArray(additionalImages)
       ? additionalImages.filter((item) => typeof item === 'string' && item.trim())
       : [];
+    const normalizedSizes = normalizeSizes(availableSizes);
 
     const product = await Product.create({
       name,
@@ -39,6 +62,7 @@ const addProduct = async (req, res) => {
       image,
       additionalImages: normalizedAdditionalImages,
       description,
+      availableSizes: normalizedSizes,
     });
 
     return res.status(201).json(product);
@@ -50,6 +74,10 @@ const addProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid product id.' });
+    }
+
     const deletedProduct = await Product.findByIdAndDelete(id);
 
     if (!deletedProduct) {

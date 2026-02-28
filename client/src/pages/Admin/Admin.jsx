@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
-import { API_BASE_URL, notifyUser, parseApiError } from '../../config/api';
+import { API_BASE_URL, API_TARGET_LABEL, notifyUser, parseApiError } from '../../config/api';
 import './Admin.css';
 
 const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
@@ -48,19 +48,14 @@ function Admin() {
   const [isLogoutConfirming, setIsLogoutConfirming] = useState(false);
   const [pendingArchiveId, setPendingArchiveId] = useState(null);
   const [pendingRemoveId, setPendingRemoveId] = useState(null);
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const adminToken =
+    typeof window !== 'undefined' ? window.localStorage.getItem(ADMIN_TOKEN_KEY) : '';
 
   useEffect(() => {
-    const token =
-      typeof window !== 'undefined' ? window.localStorage.getItem(ADMIN_TOKEN_KEY) : '';
-
-    if (!token) {
+    if (!adminToken) {
       navigate('/admin-login', { replace: true });
-      return;
     }
-
-    setIsAuthChecking(false);
-  }, [navigate]);
+  }, [navigate, adminToken]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -182,7 +177,7 @@ function Admin() {
     navigate('/admin-login', { replace: true });
   };
 
-  if (isAuthChecking) {
+  if (!adminToken) {
     return null;
   }
 
@@ -212,6 +207,7 @@ function Admin() {
           <header className="admin-header">
             <p>CASAWAVE CONTROL ROOM</p>
             <h1>Dashboard</h1>
+            <span className="admin-data-source">Data source: {API_TARGET_LABEL}</span>
           </header>
 
           <section id="orders" className="admin-card">
@@ -220,7 +216,7 @@ function Admin() {
               <span>{orders.length} Orders</span>
             </div>
 
-            {isOrdersLoading ? (
+            {isOrdersLoading && orders.length === 0 ? (
               <p className="admin-empty">Loading orders...</p>
             ) : orders.length === 0 ? (
               <p className="admin-empty">No pending orders.</p>
@@ -240,12 +236,13 @@ function Admin() {
                         />
                         <div className="admin-order-primary">
                           <p className="admin-order-title">{order.productName}</p>
-                          <span>{order.quantity} x {order.size}</span>
                         </div>
                         <strong>{order.lineTotal} MAD</strong>
                       </div>
 
                       <div className="admin-order-meta">
+                        <p><strong>Size:</strong> {order.size}</p>
+                        <p><strong>Quantity:</strong> {order.quantity}</p>
                         <p><strong>Customer:</strong> {order.customerName}</p>
                         <p>
                           <strong>Phone:</strong> {order.phone}

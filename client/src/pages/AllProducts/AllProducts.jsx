@@ -6,6 +6,19 @@ import { API_BASE_URL, notifyUser, parseApiError } from '../../config/api';
 import './AllProducts.css';
 
 const CATEGORY_FILTERS = ['All', 'Hoodies', 'T-shirts', 'Pants', 'Ensemble'];
+const DEFAULT_PRODUCT_SIZES = ['S', 'M', 'L', 'XL'];
+
+const normalizeSizeList = (sizes) => {
+  if (!Array.isArray(sizes)) return [...DEFAULT_PRODUCT_SIZES];
+
+  const normalized = sizes
+    .map((size) => String(size || '').trim().toUpperCase())
+    .filter(Boolean);
+  const unique = [...new Set(normalized)];
+
+  if (unique.length === 0) return [...DEFAULT_PRODUCT_SIZES];
+  return unique;
+};
 
 const mapApiProductToUi = (product) => {
   const image = product?.image || hoodieImg;
@@ -21,7 +34,7 @@ const mapApiProductToUi = (product) => {
     category: product?.category || '',
     img: image,
     images: [image, ...extraImages],
-    availableSizes: ['S', 'M', 'L', 'XL'],
+    availableSizes: normalizeSizeList(product?.availableSizes),
   };
 };
 
