@@ -32,6 +32,19 @@ function Contact() {
           <p className="contact-card-note">
             Our team is available every day and replies as quickly as possible.
           </p>
+
+          <div className="contact-map-block">
+            <p className="contact-map-title">FIND US</p>
+            <div className="contact-map-frame">
+              <iframe
+                title="CASAWAVE location map"
+                src="https://www.google.com/maps?q=Casablanca%2C%20Morocco&output=embed"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
