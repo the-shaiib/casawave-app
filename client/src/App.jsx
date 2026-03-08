@@ -1,23 +1,23 @@
-﻿import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar/Navbar';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import Footer from './components/Footer/Footer';
+import Navbar from './components/Navbar/Navbar';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import Home from './pages/Home/Home';
-import About from './pages/About/About';
-import Contact from './pages/Contact/Contact';
-import ProductDetails from './pages/ProductDetails/ProductDetails';
 import Admin from './pages/Admin/Admin';
 import AdminLogin from './pages/AdminLogin/AdminLogin';
-import ThankYou from './pages/ThankYou/ThankYou';
-import Orders from './pages/Orders/Orders';
 import AllProducts from './pages/AllProducts/AllProducts';
+import About from './pages/About/About';
+import Contact from './pages/Contact/Contact';
+import Home from './pages/Home/Home';
+import Orders from './pages/Orders/Orders';
+import ProductDetails from './pages/ProductDetails/ProductDetails';
+import ThankYou from './pages/ThankYou/ThankYou';
 
-function App() {
+function AppRoutes() {
+  const location = useLocation();
+
   return (
-    <Router>
-      <Navbar />
-
-      <main>
+    <main>
+      <div key={location.pathname} className="route-fade">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<AllProducts />} />
@@ -36,8 +36,16 @@ function App() {
           />
           <Route path="/thank-you" element={<ThankYou />} />
         </Routes>
-      </main>
+      </div>
+    </main>
+  );
+}
 
+function App() {
+  return (
+    <Router>
+      <Navbar />
+      <AppRoutes />
       <Footer />
     </Router>
   );

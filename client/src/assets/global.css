@@ -25,6 +25,9 @@
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
   --shadow-lg: 0 10px 30px rgba(0,0,0,0.1);
   --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --fade-duration-fast: 0.45s;
+  --fade-duration-base: 0.62s;
+  --fade-ease: cubic-bezier(0.2, 0.65, 0.3, 1);
 }
 
 * {
@@ -51,6 +54,31 @@ body {
 main {
   width: 100%;
   min-height: calc(100vh - 80px);
+}
+
+.route-fade {
+  animation: routeFadeIn var(--fade-duration-fast) var(--fade-ease) both;
+}
+
+.route-fade :where(section, article, form, .admin-card, .admin-overview-card, .order-item) {
+  opacity: 0;
+  animation: contentFadeUp var(--fade-duration-base) var(--fade-ease) both;
+}
+
+.route-fade :where(section, article, form, .admin-card, .admin-overview-card, .order-item):nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.route-fade :where(section, article, form, .admin-card, .admin-overview-card, .order-item):nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.route-fade :where(section, article, form, .admin-card, .admin-overview-card, .order-item):nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.route-fade :where(section, article, form, .admin-card, .admin-overview-card, .order-item):nth-child(4) {
+  animation-delay: 0.2s;
 }
 
 a {
@@ -103,6 +131,37 @@ button {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-light);
+}
+
+@keyframes routeFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes contentFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-fade,
+  .route-fade * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 @media (max-width: 768px) {

@@ -7,6 +7,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const siteSettingsRoutes = require('./routes/siteSettingsRoutes');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -23,6 +24,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/admin', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/site-settings', siteSettingsRoutes);
 app.use('/api', (req, res) => {
   return res.status(404).json({ message: 'API route not found.' });
 });

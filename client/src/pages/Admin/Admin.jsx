@@ -43,8 +43,11 @@ function Admin() {
     isOrdersLoading,
     products,
     isProductsLoading,
+    siteSettings,
+    isSiteSettingsLoading,
     addProduct,
     removeProduct,
+    updateSiteSettings,
     cancelOrder,
     adminLogout,
   } = useStore();
@@ -57,8 +60,16 @@ function Admin() {
   const [pendingRemoveId, setPendingRemoveId] = useState(null);
   const [mainImagePreview, setMainImagePreview] = useState('');
   const [galleryPreviews, setGalleryPreviews] = useState([]);
+  const [homeHeroFile, setHomeHeroFile] = useState(null);
+  const [homeHeroDraftPreview, setHomeHeroDraftPreview] = useState('');
+  const [homeHeroInputKey, setHomeHeroInputKey] = useState(0);
+  const [homeHeroError, setHomeHeroError] = useState('');
+  const [homeHeroNotice, setHomeHeroNotice] = useState('');
+  const [isHomeHeroSaving, setIsHomeHeroSaving] = useState(false);
   const adminToken =
     typeof window !== 'undefined' ? window.localStorage.getItem(ADMIN_TOKEN_KEY) : '';
+  const homeHeroPreview = homeHeroDraftPreview || siteSettings.homeHeroImage;
+  const heroStatusLabel = homeHeroFile ? 'Draft pending' : 'Live image ready';
 
   useEffect(() => {
     if (!adminToken) {
@@ -80,6 +91,15 @@ function Admin() {
       revokeObjectUrls(galleryPreviews);
     },
     [galleryPreviews]
+  );
+
+  useEffect(
+    () => () => {
+      if (homeHeroDraftPreview) {
+        URL.revokeObjectURL(homeHeroDraftPreview);
+      }
+    },
+    [homeHeroDraftPreview]
   );
 
   const handleChange = (event) => {
@@ -116,6 +136,32 @@ function Admin() {
     setGalleryPreviews((prev) => {
       revokeObjectUrls(prev);
       return files.map((file) => URL.createObjectURL(file));
+    });
+  };
+
+  const resetHomeHeroDraft = () => {
+    setHomeHeroFile(null);
+    setHomeHeroError('');
+    setHomeHeroNotice('');
+    setHomeHeroDraftPreview((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return '';
+    });
+    setHomeHeroInputKey((prev) => prev + 1);
+  };
+
+  const handleHomeHeroImageChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    setHomeHeroFile(file);
+    setHomeHeroError('');
+    setHomeHeroNotice('');
+    setHomeHeroDraftPreview((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return file ? URL.createObjectURL(file) : '';
     });
   };
 
@@ -164,6 +210,31 @@ function Admin() {
     }
   };
 
+  const handleSaveHomeHero = async (event) => {
+    event.preventDefault();
+
+    if (!homeHeroFile) {
+      setHomeHeroError('Choose a new image first.');
+      return;
+    }
+
+    setHomeHeroError('');
+    setHomeHeroNotice('');
+    setIsHomeHeroSaving(true);
+
+    try {
+      const homeHeroImage = await fileToDataUrl(homeHeroFile);
+      await updateSiteSettings({ homeHeroImage });
+      resetHomeHeroDraft();
+      setHomeHeroNotice('Homepage hero image updated successfully.');
+    } catch (error) {
+      const message = parseApiError(error, 'Failed to update homepage image.');
+      setHomeHeroError(message);
+    } finally {
+      setIsHomeHeroSaving(false);
+    }
+  };
+
   const getAuthConfig = () => {
     const token = window.localStorage.getItem(ADMIN_TOKEN_KEY);
     if (!token) {
@@ -178,6 +249,7 @@ function Admin() {
   };
 
   const handleConfirmArchive = async (orderId) => {
+
     if (!orderId) {
       setOrderError('Invalid order id.');
       return;
@@ -231,6 +303,7 @@ function Admin() {
       <div className="admin-layout">
         <aside className="admin-sidebar">
           <h2>COMMAND</h2>
+          <a href="#home-media">Home</a>
           <a href="#orders">Orders</a>
           <a href="#inventory">Inventory</a>
           <button type="button" onClick={() => setIsLogoutConfirming(true)}>
@@ -254,6 +327,107 @@ function Admin() {
             <h1>Dashboard</h1>
             <span className="admin-data-source">Data source: {API_TARGET_LABEL}</span>
           </header>
+
+          <section className="admin-overview-grid" aria-label="Dashboard overview">
+            <article className="admin-overview-card">
+              <span className="admin-overview-label">Home Hero</span>
+              <strong>{heroStatusLabel}</strong>
+              <small>Fixed frame with saved homepage image</small>
+            </article>
+            <article className="admin-overview-card">
+              <span className="admin-overview-label">Pending Orders</span>
+              <strong>{orders.length}</strong>
+              <small>Compact live order queue</small>
+            </article>
+            <article className="admin-overview-card">
+              <span className="admin-overview-label">Products</span>
+              <strong>{products.length}</strong>
+              <small>Active catalog items</small>
+            </article>
+          </section>
+
+          <section id="home-media" className="admin-card">
+            <div className="admin-section-head">
+              <h3>Homepage Hero</h3>
+              <span>
+                {isSiteSettingsLoading
+                  ? 'Loading content...'
+                  : homeHeroFile
+                    ? 'Draft ready'
+                    : 'Live on homepage'}
+              </span>
+            </div>
+
+            <div className="admin-hero-manager">
+              <div className="admin-hero-preview-panel">
+                <div className="admin-hero-preview-shell">
+                  <img
+                    className="admin-hero-preview-image"
+                    src={homeHeroPreview}
+                    alt="Homepage hero preview"
+                  />
+                  <span className="admin-hero-status-badge">
+                    {homeHeroFile ? 'Draft preview' : 'Current live image'}
+                  </span>
+                </div>
+              </div>
+
+              <form className="admin-hero-form" onSubmit={handleSaveHomeHero}>
+                <div className="admin-hero-copy">
+                  <p className="admin-hero-eyebrow">Home page media</p>
+                  <h4>Replace the main image shown on the hero section.</h4>
+                  <p>
+                    Upload one strong image and save it. The change is stored in the database
+                    and appears on the homepage immediately after save.
+                  </p>
+                </div>
+
+                <label className="admin-upload-card admin-upload-card-hero">
+                  <input
+                    key={homeHeroInputKey}
+                    className="admin-file-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleHomeHeroImageChange}
+                  />
+                  {homeHeroFile ? (
+                    <div className="admin-upload-empty admin-upload-empty-filled">
+                      <i className="fa-solid fa-image" />
+                      <span>{homeHeroFile.name}</span>
+                      <small>New homepage image ready to save</small>
+                    </div>
+                  ) : (
+                    <div className="admin-upload-empty">
+                      <i className="fa-solid fa-cloud-arrow-up" />
+                      <span>Upload new home image</span>
+                      <small>Recommended: clean portrait or square shot</small>
+                    </div>
+                  )}
+                </label>
+
+                <div className="admin-hero-actions">
+                  <button
+                    type="submit"
+                    className="admin-primary-btn"
+                    disabled={!homeHeroFile || isHomeHeroSaving || isSiteSettingsLoading}
+                  >
+                    {isHomeHeroSaving ? 'Saving...' : 'Save Home Image'}
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-secondary-btn"
+                    onClick={resetHomeHeroDraft}
+                    disabled={!homeHeroFile}
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+
+                {homeHeroNotice ? <p className="admin-form-success">{homeHeroNotice}</p> : null}
+                {homeHeroError ? <p className="admin-form-error">{homeHeroError}</p> : null}
+              </form>
+            </div>
+          </section>
 
           <section id="orders" className="admin-card">
             <div className="admin-section-head">

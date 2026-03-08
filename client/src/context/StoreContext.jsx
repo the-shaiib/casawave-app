@@ -1,7 +1,8 @@
 ﻿/* eslint-disable react-refresh/only-export-components */
 import axios from 'axios';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useEffectEvent, useState } from 'react';
 import hoodieImg from '../assets/pr.png';
+import homeHeroFallbackImg from '../assets/og.jpg';
 import {
   API_BASE_URL,
   DEFAULT_SERVER_ERROR_MESSAGE,
@@ -16,6 +17,9 @@ const USER_PROFILE_KEY = 'casawave_customer_profile';
 const MAX_IMAGE_PAYLOAD_BYTES = 50 * 1024 * 1024;
 const ORDER_SYNC_INTERVAL_MS = 4000;
 const DEFAULT_PRODUCT_SIZES = ['S', 'M', 'L', 'XL'];
+const DEFAULT_SITE_SETTINGS = {
+  homeHeroImage: '',
+};
 
 const normalizeQuantity = (value) => {
   const parsed = Number(value);
@@ -82,6 +86,12 @@ const mapApiOrderToUi = (order) => ({
   createdAt: order?.createdAt || new Date().toISOString(),
 });
 
+const mapApiSiteSettings = (settings) => ({
+  homeHeroImage: settings?.homeHeroImage || '',
+});
+
+const isUnauthorizedAdminError = (error) => error?.response?.status === 401;
+
 const isLikelyBase64Image = (value) =>
   typeof value === 'string' &&
   (value.startsWith('data:image/') || value.startsWith('http://') || value.startsWith('https://'));
@@ -136,6 +146,8 @@ function getStoredUserProfile() {
 export function StoreProvider({ children }) {
   const [products, setProducts] = useState([]);
   const [isProductsLoading, setIsProductsLoading] = useState(true);
+  const [siteSettings, setSiteSettings] = useState(DEFAULT_SITE_SETTINGS);
+  const [isSiteSettingsLoading, setIsSiteSettingsLoading] = useState(true);
   const [orders, setOrders] = useState([]);
   const [isOrdersLoading, setIsOrdersLoading] = useState(false);
   const [userOrders, setUserOrders] = useState(() => getStoredUserOrders().map(mapApiOrderToUi));
@@ -148,6 +160,25 @@ export function StoreProvider({ children }) {
     quantity: 1,
   });
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(getStoredAdminAuth);
+
+  const clearAdminSession = () => {
+    setIsAdminAuthenticated(false);
+    setOrders([]);
+    setIsOrdersLoading(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+      window.localStorage.removeItem('casawave-admin-auth');
+    }
+  };
+
+  const expireAdminSession = (message = 'Admin session expired. Please login again.') => {
+    clearAdminSession();
+    notifyUser(message);
+    return message;
+  };
+  const handleExpiredAdminSession = useEffectEvent(() => {
+    expireAdminSession();
+  });
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -171,6 +202,24 @@ export function StoreProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    const fetchSiteSettings = async () => {
+      setIsSiteSettingsLoading(true);
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/site-settings`);
+        setSiteSettings(mapApiSiteSettings(response.data));
+      } catch (error) {
+        console.error('Failed to fetch site settings:', error.message);
+        setSiteSettings(DEFAULT_SITE_SETTINGS);
+        notifyUser(parseApiError(error, DEFAULT_SERVER_ERROR_MESSAGE));
+      } finally {
+        setIsSiteSettingsLoading(false);
+      }
+    };
+
+    fetchSiteSettings();
+  }, []);
+
+  useEffect(() => {
     if (!isAdminAuthenticated) {
       setIsOrdersLoading(false);
       return;
@@ -181,7 +230,10 @@ export function StoreProvider({ children }) {
 
     const fetchOrders = async () => {
       const token = getStoredAdminToken();
-      if (!token) return;
+      if (!token) {
+        clearAdminSession();
+        return;
+      }
 
       if (active && !hasFinishedInitialFetch) {
         setIsOrdersLoading(true);
@@ -202,6 +254,11 @@ export function StoreProvider({ children }) {
           setOrders(mappedOrders);
         }
       } catch (error) {
+        if (isUnauthorizedAdminError(error)) {
+          handleExpiredAdminSession();
+          return;
+        }
+
         console.error('Failed to fetch orders:', error.message);
         notifyUser(parseApiError(error, DEFAULT_SERVER_ERROR_MESSAGE));
       } finally {
@@ -445,6 +502,11 @@ export function StoreProvider({ children }) {
 
       return mapped;
     } catch (error) {
+      if (isUnauthorizedAdminError(error)) {
+        const message = expireAdminSession();
+        throw new Error(message);
+      }
+
       if (error?.response?.status === 413) {
         const message = 'Image payload too large. Please upload a smaller image.';
         notifyUser(message);
@@ -476,7 +538,62 @@ export function StoreProvider({ children }) {
 
       throw new Error('Failed to delete product.');
     } catch (error) {
+      if (isUnauthorizedAdminError(error)) {
+        const message = expireAdminSession();
+        throw new Error(message);
+      }
+
       const message = parseApiError(error, 'Failed to delete product.');
+      notifyUser(message);
+      throw new Error(message);
+    }
+  };
+
+  const updateSiteSettings = async (updates) => {
+    const token = getStoredAdminToken();
+    if (!token) {
+      throw new Error('Admin token is missing. Please login again.');
+    }
+
+    const homeHeroImage = String(updates?.homeHeroImage || '').trim();
+
+    if (!isLikelyBase64Image(homeHeroImage)) {
+      throw new Error('Invalid image format. Please upload a valid image.');
+    }
+
+    if (homeHeroImage.length > MAX_IMAGE_PAYLOAD_BYTES) {
+      throw new Error('Image is too large. Please use a smaller image.');
+    }
+
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/api/site-settings`,
+        {
+          homeHeroImage,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const mappedSettings = mapApiSiteSettings(response.data);
+      setSiteSettings(mappedSettings);
+      return mappedSettings;
+    } catch (error) {
+      if (isUnauthorizedAdminError(error)) {
+        const message = expireAdminSession();
+        throw new Error(message);
+      }
+
+      if (error?.response?.status === 413) {
+        const message = 'Image payload too large. Please upload a smaller image.';
+        notifyUser(message);
+        throw new Error(message);
+      }
+
+      const message = parseApiError(error, 'Failed to update site settings.');
       notifyUser(message);
       throw new Error(message);
     }
@@ -513,13 +630,7 @@ export function StoreProvider({ children }) {
   };
 
   const adminLogout = () => {
-    setIsAdminAuthenticated(false);
-    setOrders([]);
-    setIsOrdersLoading(false);
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(ADMIN_TOKEN_KEY);
-      window.localStorage.removeItem('casawave-admin-auth');
-    }
+    clearAdminSession();
   };
 
   const cartCount = userOrders.length;
@@ -527,6 +638,11 @@ export function StoreProvider({ children }) {
   const value = {
     products,
     isProductsLoading,
+    siteSettings: {
+      ...siteSettings,
+      homeHeroImage: siteSettings.homeHeroImage || homeHeroFallbackImg,
+    },
+    isSiteSettingsLoading,
     orders,
     isOrdersLoading,
     userOrders,
@@ -542,6 +658,7 @@ export function StoreProvider({ children }) {
     updateOrderDetails,
     addProduct,
     removeProduct,
+    updateSiteSettings,
     getProductById,
     adminLogin,
     adminLogout,

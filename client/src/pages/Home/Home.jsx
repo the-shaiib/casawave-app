@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
 import './Home.css';
-import hoodieImg from '../../assets/og.jpg';
 import ProductCard from '../../components/ProductCard/ProductCard';
 import { useStore } from '../../context/StoreContext';
 
 function Home() {
-  const { products, isProductsLoading } = useStore();
+  const { products, isProductsLoading, siteSettings } = useStore();
 
   return (
     <div className="home-container">
@@ -35,7 +34,13 @@ function Home() {
         </div>
 
         <div className="hero-visual">
-          <img src={hoodieImg} alt="CASAWAVE featured product" className="hero-main-image" />
+          <div className="hero-image-frame">
+            <img
+              src={siteSettings.homeHeroImage}
+              alt="CASAWAVE featured product"
+              className="hero-main-image"
+            />
+          </div>
         </div>
       </section>
 
