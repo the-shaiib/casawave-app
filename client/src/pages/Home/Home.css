@@ -6,6 +6,8 @@
 
 .hero-section {
   width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
   min-height: clamp(520px, 78vh, 700px);
   display: grid;
   grid-template-columns: 1fr 1fr;
