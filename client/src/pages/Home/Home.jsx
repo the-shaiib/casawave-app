@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
 import './Home.css';
-import ProductCard from '../../components/ProductCard/ProductCard';
+import ProductCard, { ProductCardSkeleton } from '../../components/ProductCard/ProductCard';
 import { useStore } from '../../context/StoreContext';
+
+const PRODUCT_SKELETON_COUNT = 4;
 
 function Home() {
   const { products, isProductsLoading, siteSettings } = useStore();
+  const showSkeletons = isProductsLoading && products.length === 0;
 
   return (
     <div className="home-container">
@@ -50,15 +53,13 @@ function Home() {
           <h2 className="title">Simple, Practical, Stylish.</h2>
         </div>
 
-        {isProductsLoading ? (
-          <p className="home-loading">Loading products...</p>
-        ) : (
-          <div className="products-grid">
-            {products.map((item) => (
-              <ProductCard key={item.id} product={item} />
-            ))}
-          </div>
-        )}
+        <div className="products-grid" aria-busy={showSkeletons}>
+          {showSkeletons
+            ? Array.from({ length: PRODUCT_SKELETON_COUNT }, (_, index) => (
+                <ProductCardSkeleton key={`home-product-skeleton-${index}`} />
+              ))
+            : products.map((item) => <ProductCard key={item.id} product={item} />)}
+        </div>
       </section>
     </div>
   );

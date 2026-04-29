@@ -20,4 +20,16 @@ function ProductCard({ product }) {
   );
 }
 
+export function ProductCardSkeleton() {
+  return (
+    <article className="p-card p-card-skeleton" aria-hidden="true">
+      <div className="p-img-box p-skeleton-block" />
+      <div className="p-info">
+        <span className="p-skeleton-line p-skeleton-title" />
+        <span className="p-skeleton-line p-skeleton-price" />
+      </div>
+    </article>
+  );
+}
+
 export default ProductCard;

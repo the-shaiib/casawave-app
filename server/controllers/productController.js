@@ -18,7 +18,12 @@ const normalizeSizes = (sizes) => {
 
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find()
+      .select('name price category image additionalImages description availableSizes createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.set('Cache-Control', 'public, max-age=15, stale-while-revalidate=120');
     return res.status(200).json(products);
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Server error.' });

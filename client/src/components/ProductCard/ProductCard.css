@@ -71,6 +71,49 @@
   font-size: 0.82rem;
 }
 
+.p-card-skeleton {
+  pointer-events: none;
+}
+
+.p-skeleton-block,
+.p-skeleton-line {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(100deg, #f4f4f4 20%, #ececec 38%, #f7f7f7 56%);
+  background-size: 220% 100%;
+  animation: productSkeleton 1.15s ease-in-out infinite;
+}
+
+.p-skeleton-block {
+  border-color: transparent;
+}
+
+.p-skeleton-line {
+  height: 10px;
+  border-radius: 999px;
+  margin: 0 auto;
+}
+
+.p-skeleton-title {
+  width: 72%;
+  margin-bottom: 8px;
+}
+
+.p-skeleton-price {
+  width: 42%;
+}
+
+@keyframes productSkeleton {
+  from {
+    background-position: 120% 0;
+  }
+
+  to {
+    background-position: -120% 0;
+  }
+}
+
 @media (max-width: 768px) {
   .p-card {
     max-width: 100%;
@@ -83,5 +126,12 @@
 
   .p-price {
     font-size: 0.76rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p-skeleton-block,
+  .p-skeleton-line {
+    animation: none;
   }
 }

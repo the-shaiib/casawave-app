@@ -1,6 +1,6 @@
 ﻿/* eslint-disable react-refresh/only-export-components */
 import axios from 'axios';
-import { createContext, useContext, useEffect, useEffectEvent, useState } from 'react';
+import { createContext, useContext, useEffect, useEffectEvent, useRef, useState } from 'react';
 import hoodieImg from '../assets/pr.png';
 import homeHeroFallbackImg from '../assets/og.jpg';
 import {
@@ -12,6 +12,7 @@ import {
 
 const StoreContext = createContext(null);
 const ADMIN_TOKEN_KEY = 'casawave_token';
+const PRODUCT_CACHE_KEY = 'casawave_products_cache';
 const USER_ORDERS_KEY = 'casawave_user_orders';
 const USER_PROFILE_KEY = 'casawave_customer_profile';
 const MAX_IMAGE_PAYLOAD_BYTES = 50 * 1024 * 1024;
@@ -106,6 +107,20 @@ function getStoredAdminToken() {
   return window.localStorage.getItem(ADMIN_TOKEN_KEY) || '';
 }
 
+function getStoredProducts() {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const raw = window.localStorage.getItem(PRODUCT_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map(mapApiProductToUi) : [];
+  } catch (error) {
+    console.error('Failed to read cached products:', error.message);
+    return [];
+  }
+}
+
 function getStoredUserOrders() {
   if (typeof window === 'undefined') return [];
 
@@ -144,8 +159,18 @@ function getStoredUserProfile() {
 }
 
 export function StoreProvider({ children }) {
-  const [products, setProducts] = useState([]);
-  const [isProductsLoading, setIsProductsLoading] = useState(true);
+  const initialProductsRef = useRef(null);
+  const getInitialProducts = () => {
+    if (!initialProductsRef.current) {
+      initialProductsRef.current = getStoredProducts();
+    }
+    return initialProductsRef.current;
+  };
+  const [products, setProducts] = useState(getInitialProducts);
+  const [isProductsLoading, setIsProductsLoading] = useState(
+    () => getInitialProducts().length === 0
+  );
+  const hadCachedProductsRef = useRef(products.length > 0);
   const [siteSettings, setSiteSettings] = useState(DEFAULT_SITE_SETTINGS);
   const [isSiteSettingsLoading, setIsSiteSettingsLoading] = useState(true);
   const [orders, setOrders] = useState([]);
@@ -182,17 +207,25 @@ export function StoreProvider({ children }) {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      setIsProductsLoading(true);
+      setIsProductsLoading(!hadCachedProductsRef.current);
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/products`);
+        const response = await axios.get(`${API_BASE_URL}/api/products`, {
+          timeout: 15000,
+        });
         const mappedProducts = Array.isArray(response.data)
           ? response.data.map(mapApiProductToUi)
           : [];
         setProducts(mappedProducts);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify(mappedProducts));
+        }
       } catch (error) {
         console.error('Failed to fetch products:', error.message);
-        setProducts([]);
-        notifyUser(parseApiError(error, DEFAULT_SERVER_ERROR_MESSAGE));
+        setProducts((current) => {
+          if (current.length > 0) return current;
+          notifyUser(parseApiError(error, DEFAULT_SERVER_ERROR_MESSAGE));
+          return [];
+        });
       } finally {
         setIsProductsLoading(false);
       }
